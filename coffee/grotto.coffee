@@ -4,13 +4,16 @@ camera = undefined
 controls = undefined
 scene = undefined
 renderer = undefined
+
 pickingData = []
 pickingTexture = undefined
 pickingScene = undefined
-objects = []
 highlightBox = undefined
+
 mouse = new THREE.Vector2()
 offset = new THREE.Vector3(10, 10, 10)
+
+worldSize = 12000
 
 C = 300
 B = Math.sin(60 * Math.PI / 180.0) * C
@@ -78,7 +81,7 @@ stoneTexture.wrapT = THREE.RepeatWrapping
 stoneTexture.repeat.set 80, 30
 
 groundMaterial = new THREE.MeshBasicMaterial(
-  color: 0x202015
+  color: 0x262617
   depthTest: true
   depthWrite: true
   map: stoneTexture
@@ -187,11 +190,11 @@ init = ->
   light.position.set 0, 500, 2000
   
   #scene.add( light );				
-  ground = new THREE.Mesh(new THREE.PlaneGeometry(12000, 12000), groundMaterial)
+  ground = new THREE.Mesh(new THREE.PlaneGeometry(worldSize, worldSize), groundMaterial)
   ground.rotation.x = -Math.PI / 2
   ground.position.y = -0.5 * 465
   scene.add ground
-  skyMesh = new THREE.Mesh(new THREE.CubeGeometry(12000, 12000, 12000), skyMaterial)
+  skyMesh = new THREE.Mesh(new THREE.CubeGeometry(worldSize, worldSize, worldSize), skyMaterial)
   scene.add skyMesh
   pickingGeometry = new THREE.Geometry()
   i = 0

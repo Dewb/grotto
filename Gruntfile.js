@@ -27,14 +27,37 @@ module.exports = function(grunt) {
         expand: true,
         cwd: 'coffee',
         src: ['*.coffee'],
-        dest: 'compiled',
+        dest: 'html/compiled',
         ext: '.js'
       }
-    }
+    },
+    watch: {
+      coffee: {
+        files: ['coffee/*.coffee'],
+        tasks: 'coffee'
+      }
+    },
+    "ftp-deploy": {
+      build: {
+        auth: {
+          host: 'ftp.webhero.com',
+          port: 21,
+          authKey: 'dewb.org'
+        },
+        src: 'html',
+        dest: '/public_html/grotto',
+        exclusions: [
+          '**/.DS_Store', 
+          '**/Thumbs.db', 
+        ],
+      },
+    },
   });
 
   // These plugins provide necessary tasks.
   grunt.loadNpmTasks('grunt-contrib-coffee');
+  grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-ftp-deploy');
   
   // Default task.
   grunt.registerTask('default', ['coffee']);

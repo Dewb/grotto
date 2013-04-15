@@ -1,3 +1,4 @@
 .DS_Store
-compiled/
+html/compiled/
 node_modules/
+.ftppass

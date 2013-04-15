@@ -5,11 +5,13 @@
   "main": "index.html",
   "devDependencies": {
     "grunt": "~0.4.1",
-    "grunt-contrib-coffee": "~0.6.6"
+    "grunt-contrib-coffee": "~0.6.6",
+    "grunt-ftp-deploy": "~0.0.7",
+    "grunt-contrib-watch": "~0.3.1"
   },
   "dependencies": {},
   "scripts": {
-    "start": "http-server .",
+    "start": "./start.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "homepage": "https://github.com/dewb/grotto",
