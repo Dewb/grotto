@@ -13,7 +13,7 @@ highlightBox = undefined
 mouse = new THREE.Vector2()
 offset = new THREE.Vector3(10, 10, 10)
 
-worldSize = 12000
+worldSize = 16000
 
 C = 300
 B = Math.sin(60 * Math.PI / 180.0) * C
@@ -194,7 +194,7 @@ init = ->
   ground.rotation.x = -Math.PI / 2
   ground.position.y = -0.5 * 465
   scene.add ground
-  skyMesh = new THREE.Mesh(new THREE.CubeGeometry(worldSize, worldSize, worldSize), skyMaterial)
+  skyMesh = new THREE.Mesh(new THREE.CylinderGeometry(worldSize/2.0, worldSize/2.0, worldSize/2.0, 36, 1), skyMaterial)
   scene.add skyMesh
   pickingGeometry = new THREE.Geometry()
   i = 0
