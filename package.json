@@ -1,0 +1,31 @@
+{
+  "name": "grotto",
+  "version": "0.0.1",
+  "description": "Simulator for interactive art installation",
+  "main": "index.html",
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-coffee": "~0.6.6"
+  },
+  "dependencies": {},
+  "scripts": {
+    "start": "http-server .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "homepage": "https://github.com/dewb/grotto",
+  "author": {
+    "name": "Michael Dewberry",
+    "url": "http://dewb.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/dewb/grotto.git"
+  },
+  "bugs": "https://github.com/dewb/grotto/issues",
+  "licenses": [
+    {
+      "type": "GPLv3",
+      "url": "http://www.gnu.org/licenses/gpl-3.0-standalone.html"
+    }
+  ]
+}
