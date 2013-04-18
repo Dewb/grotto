@@ -25,7 +25,7 @@ module.exports = function(grunt) {
     coffee: {
       glob_to_multiple: {
         expand: true,
-        cwd: 'coffee',
+        cwd: 'client',
         src: ['*.coffee'],
         dest: 'html/compiled',
         ext: '.js'
@@ -33,7 +33,7 @@ module.exports = function(grunt) {
     },
     watch: {
       coffee: {
-        files: ['coffee/*.coffee'],
+        files: ['client/*.coffee'],
         tasks: 'coffee'
       }
     },

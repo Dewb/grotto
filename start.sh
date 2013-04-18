@@ -1,4 +1,4 @@
 #!/bin/bash
 
-http-server html &
+coffee server/server.coffee &
 grunt watch &

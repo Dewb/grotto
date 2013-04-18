@@ -363,10 +363,7 @@ pick = ->
       highlightBeam.scale.copy(data.scale).add offset
       highlightBeam.visible = true
       highlightBox.visible = false
-      scene.__lights[data.parents[0]*2].color.setHSL(0.7, 1.0, 0.5)
-      scene.__lights[data.parents[0]*2+1].color.setHSL(0.58, 1.0, 0.5)
-      scene.__lights[data.parents[1]*2].color.setHSL(0.7, 1.0, 0.5)
-      scene.__lights[data.parents[1]*2+1].color.setHSL(0.58, 1.0, 0.5)
+      now.breakBeam data.parents[0], data.parents[1]
   else
     highlightBox.visible = false
     highlightBeam.visible = false
@@ -378,3 +375,9 @@ render = ->
 
 init()
 animate()
+
+now.receiveBreakBeam = (tube1, tube2) ->
+  scene.__lights[tube1*2].color.setHSL(0.7, 1.0, 0.5)
+  scene.__lights[tube1*2+1].color.setHSL(0.58, 1.0, 0.5)
+  scene.__lights[tube2*2].color.setHSL(0.7, 1.0, 0.5)
+  scene.__lights[tube2*2+1].color.setHSL(0.58, 1.0, 0.5)
