@@ -8,7 +8,7 @@ server = http.createServer(app)
 server.listen 8080
 
 nowjs = require("now")
-everyone = nowjs.initialize(server)
+everyone = nowjs.initialize(server, { port: 8080 })
 
 everyone.now.breakBeam = (tube1, tube2) ->
   everyone.now.receiveBreakBeam(tube1, tube2)
