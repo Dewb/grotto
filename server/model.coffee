@@ -79,9 +79,19 @@ while beamstart < 36
     beamCoords.push(makebeam(beamstart, ((beamstart-17)%18)+18))
   beamstart++
   
+  
+beamCallbacks = []
+addBeamCallback = (callback) ->
+  beamCallbacks.push(callback)
+  
 onBeamBroken = (tube1, tube2) ->
   console.log('Beam ' + tube1 + '-' + tube2 + ' broken')
+  i = 0
+  while i < beamCallbacks.length
+    beamCallbacks[i](tube1, tube2)
+    i++
     
 exports.tubeCoords = tubeCoords
 exports.beamCoords = beamCoords 
 exports.onBeamBroken = onBeamBroken
+exports.addBeamCallback = addBeamCallback
