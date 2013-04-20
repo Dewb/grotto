@@ -2,8 +2,11 @@ container = undefined
 stats = undefined
 camera = undefined
 controls = undefined
-scene = undefined
 renderer = undefined
+
+scene = new THREE.Scene()
+
+modelUpdateFunction = undefined
 
 pickingData = []
 pickingTexture = undefined
@@ -11,96 +14,10 @@ pickingScene = undefined
 highlightBox = undefined
 highlightBeam = undefined
 
-mouse = new THREE.Vector2()
-offset = new THREE.Vector3(10, 10, 10)
-
 worldSize = 16000
 
-C = 300
-B = Math.sin(60 * Math.PI / 180.0) * C
-A = C * 0.5
-
-tubeCoords = [
-
-  # inner ring
-  [-B, A], 
-  [-B, A - C], 
-  [0, -C], 
-  [B, A - C], 
-  [B, A], 
-  [0, C], 
-
-  # middle ring  
-  [-B * 2, A * 2], 
-  [-B * 2, A * 2 - C], 
-  [-B * 2, A * 2 - C * 2], 
-  [-B, A - C * 2], 
-  [0, -C * 2], 
-  [B, A - C * 2], 
-  [B * 2, A * 2 - C * 2], 
-  [B * 2, A * 2 - C], 
-  [B * 2, A * 2], 
-  [B, A * 3], 
-  [0, C * 2], 
-  [-B, A * 3],
-   
-  # outer ring
-  [-B * 3, A * 3], 
-  [-B * 3, A * 3 - C], 
-  [-B * 3, A * 3 - C * 2], 
-  [-B * 3, A * 3 - C * 3], 
-  [-B * 2, A * 2 - C * 3], 
-  [-B, A - C * 3], 
-  [0, -C * 3], 
-  [B, A - C * 3], 
-  [B * 2, A * 2 - C * 3], 
-  [B * 3, A * 3 - C * 3], 
-  [B * 3, A * 3 - C * 2], 
-  [B * 3, A * 3 - C], 
-  [B * 3, A * 3], 
-  [B * 2, A * 4], 
-  [B, A * 5], 
-  [0, C * 3], 
-  [-B, A * 5], 
-  [-B * 2, A * 4]
-]
-
-makebeam = (m, n) -> 
-  dx = tubeCoords[m][0]-tubeCoords[n][0]
-  dy = tubeCoords[m][1]-tubeCoords[n][1]
-  
-  return {
-    x: (tubeCoords[m][0]+tubeCoords[n][0])/2.0,
-    y: (tubeCoords[m][1]+tubeCoords[n][1])/2.0,
-    rotation: Math.atan2(dx, dy)
-    length: Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2))
-    parents: [m, n]
-  }
-
-beamCoords = []
-
-beamstart = 0
-while beamstart < 6
-  beamCoords.push(makebeam(beamstart, (beamstart+1)%6))
-  beamCoords.push(makebeam(beamstart, if beamstart == 0 then 17 else beamstart*2+5))
-  beamCoords.push(makebeam(beamstart, beamstart*2+6))
-  beamCoords.push(makebeam(beamstart, beamstart*2+7))
-  beamstart++
-
-beamstart = 6
-beamend = 18
-while beamstart < 18
-  beamCoords.push(makebeam(beamstart, ((beamstart-5)%12)+6))
-  if beamstart % 2 == 0
-    beamCoords.push(makebeam(beamstart, if beamstart == 6 then 35 else beamend++))
-  beamCoords.push(makebeam(beamstart, beamend++))
-  beamCoords.push(makebeam(beamstart, beamend))
-  beamstart++
-
-beamstart = 18
-while beamstart < 36
-  beamCoords.push(makebeam(beamstart, ((beamstart-17)%18)+18))
-  beamstart++
+mouse = new THREE.Vector2()
+offset = new THREE.Vector3(10, 10, 10)
 
 shellMaterial = new THREE.MeshBasicMaterial(
   color: 0x202535
@@ -170,7 +87,15 @@ applyPRS = (geom, position, rotation, scale) ->
   geom.rotation.copy rotation
   geom.scale.copy scale
   
-createTube = (scene, position, rotation, scale) ->
+applyVertexColors = (g, c) ->
+  g.faces.forEach (f) ->
+    n = (if (f instanceof THREE.Face3) then 3 else 4)
+    j = 0
+    while j < n
+      f.vertexColors[j] = c
+      j++  
+  
+scene.createTube = (scene, position, rotation, scale) ->
   topHeight = 0.03
   bottomHeight = 0.3
   top = new THREE.CylinderGeometry(1, 1, topHeight, 20, 1)
@@ -207,7 +132,7 @@ createTube = (scene, position, rotation, scale) ->
   scene.add topLight
   scene.add bottomLight
   
-createPick = (type, shape, parents, pickingGeometry, pickingData, position, rotation, scale) ->
+scene.createPick = (type, pickingGeometry, shape, parents, callback, position, rotation, scale) ->
   pickingColor = new THREE.Color(pickingData.length)
   applyVertexColors shape, pickingColor
   pickingBounds = new THREE.Mesh(shape)
@@ -221,6 +146,7 @@ createPick = (type, shape, parents, pickingGeometry, pickingData, position, rota
     scale: scale
     type: type
     parents: parents
+    callback: callback
   }
   
 applyVertexColors = (g, c) ->
@@ -231,7 +157,7 @@ applyVertexColors = (g, c) ->
       f.vertexColors[j] = c
       j++
 
-init = ->
+window.initRenderer = (createFunction, updateFunction) ->
   container = document.getElementById("container")
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000)
   camera.position.z = 1000
@@ -246,7 +172,7 @@ init = ->
   controls.minDistance = 200
   controls.maxDistance = 1800
   controls.maxPolarAngle = Math.PI * 0.499
-  scene = new THREE.Scene()
+
   pickingScene = new THREE.Scene()
   pickingTexture = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight)
   pickingTexture.generateMipmaps = false
@@ -263,26 +189,8 @@ init = ->
   skyMesh = new THREE.Mesh(new THREE.CylinderGeometry(worldSize/2.0, worldSize/2.0, worldSize/2.0, 36, 1), skyMaterial)
   scene.add skyMesh
   pickingGeometry = new THREE.Geometry()
-  i = 0
-  j = 0
   
-  while i < tubeCoords.length
-    position = new THREE.Vector3(tubeCoords[i][0], 0, tubeCoords[i][1])
-    rotation = new THREE.Vector3(0, 0, 0)
-    scale = new THREE.Vector3(15, 450, 15)
-    
-    createTube scene, position, rotation, scale
-    createPick "tube", new THREE.CylinderGeometry(1, 1, 1, 20, 1), [],
-      pickingGeometry, pickingData, position, rotation, scale    
-    i++
-    
-  while j < beamCoords.length
-    position = new THREE.Vector3(beamCoords[j].x, -100.0, beamCoords[j].y)
-    rotation = new THREE.Vector3(0, beamCoords[j].rotation, 0)
-    scale = new THREE.Vector3(40, 40, beamCoords[j].length)
-    createPick "beam", new THREE.CubeGeometry(1, 1, 1), beamCoords[j].parents,
-      pickingGeometry, pickingData, position, rotation, scale    
-    j++
+  createFunction(scene, pickingGeometry)
     
   pickingScene.add new THREE.Mesh(pickingGeometry, pickingMaterial)
   
@@ -311,6 +219,9 @@ init = ->
   stats.domElement.style.top = "0px"
   container.appendChild stats.domElement
   renderer.domElement.addEventListener "mousemove", onMouseMove
+  
+  modelUpdateFunction = updateFunction
+  animate()
 
 onMouseMove = (e) ->
   mouse.x = e.clientX
@@ -318,21 +229,9 @@ onMouseMove = (e) ->
 
 animate = ->
   requestAnimationFrame animate
+  modelUpdateFunction(scene)
   render()
   stats.update()
-  i = 0
-
-  while i < scene.__lights.length
-    lights = scene.__lights
-    c0 = lights[i].color.getHSL()
-    c0.h += 0.001
-    c0.h = 0  if c0.h > 1
-    lights[i].color.setHSL c0.h, c0.s, c0.l
-    c1 = lights[i + 1].color.getHSL()
-    c1.h += 0.001
-    c1.h = 0  if c1.h > 1
-    lights[i + 1].color.setHSL c1.h, c1.s, c1.l
-    i += 2
 
 pick = ->  
   #render the picking scene off-screen
@@ -357,13 +256,14 @@ pick = ->
       highlightBox.scale.copy(data.scale).add offset
       highlightBox.visible = true
       highlightBeam.visible = false
+      data.callback(data)
     if data.type == "beam" and data.position and data.rotation and data.scale
       highlightBeam.position.copy data.position
       highlightBeam.rotation.copy data.rotation
       highlightBeam.scale.copy(data.scale).add offset
       highlightBeam.visible = true
       highlightBox.visible = false
-      now.breakBeam data.parents[0], data.parents[1]
+      data.callback(data)
   else
     highlightBox.visible = false
     highlightBeam.visible = false
@@ -373,11 +273,4 @@ render = ->
   pick()
   renderer.render scene, camera
 
-init()
-animate()
 
-now.receiveBreakBeam = (tube1, tube2) ->
-  scene.__lights[tube1*2].color.setHSL(0.7, 1.0, 0.5)
-  scene.__lights[tube1*2+1].color.setHSL(0.58, 1.0, 0.5)
-  scene.__lights[tube2*2].color.setHSL(0.7, 1.0, 0.5)
-  scene.__lights[tube2*2+1].color.setHSL(0.58, 1.0, 0.5)
