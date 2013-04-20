@@ -63,7 +63,15 @@ beamMaterial = new THREE.MeshBasicMaterial(
   color: 0xff0000
   opacity: 0.2
   transparent: true
-  side: THREE.BothSides
+)
+
+bubbleMaterial = new THREE.ParticleBasicMaterial(
+  color: 0xffffff
+  size: 8
+  opacity: 0.25
+  transparent: true
+  blending: THREE.AdditiveBlending
+  map: THREE.ImageUtils.loadTexture("res/bubble-sprite-64.png")
 )
 
 reflectionCube = THREE.ImageUtils.loadTextureCube(["res/panorama.jpg", "res/panorama.jpg", "res/black.jpg", "res/black.jpg", "res/panorama.jpg", "res/panorama.jpg"])
@@ -87,6 +95,13 @@ applyPRS = (geom, position, rotation, scale) ->
   geom.rotation.copy rotation
   geom.scale.copy scale
   
+applyPRSMatrix = (geom, position, rotation, scale) ->
+  m = new THREE.Matrix4()
+  m.setRotationFromEuler(rotation);
+  m.scale(scale);
+  m.setPosition(position);
+  geom.applyMatrix(m)
+  
 applyVertexColors = (g, c) ->
   g.faces.forEach (f) ->
     n = (if (f instanceof THREE.Face3) then 3 else 4)
@@ -94,6 +109,33 @@ applyVertexColors = (g, c) ->
     while j < n
       f.vertexColors[j] = c
       j++  
+  
+scene.createBubbles = (particleGeometry, bottom, top, position, rotation, scale) ->
+  bubbleRadius = 0.5
+  bubbleR = 8
+  bubbleH = 12
+  
+  particles = new THREE.Geometry()
+  
+  h = 0
+  while (h < bubbleH)
+    r = 0
+    while (r < bubbleR)
+      theta = r/bubbleR*Math.PI*2
+      pt = new THREE.Vector3(
+        bubbleRadius * Math.cos(theta) + Math.random() * 0.15
+        bottom + h/bubbleH*(top-bottom) + Math.random() * 0.05
+        bubbleRadius * Math.sin(theta) + Math.random() * 0.15
+      )
+      particles.vertices.push pt
+      r++
+    h++
+    
+  applyPRSMatrix particles, position, rotation, scale  
+  THREE.GeometryUtils.merge particleGeometry, particles
+  
+scene.createBubbleSystem = (particleGeometry) ->
+  
   
 scene.createTube = (scene, position, rotation, scale) ->
   topHeight = 0.03
@@ -113,6 +155,7 @@ scene.createTube = (scene, position, rotation, scale) ->
   applyPRS shell, position, rotation, scale
   tankMesh = new THREE.Mesh(tank, tankMaterial)
   applyPRS tankMesh, position, rotation, scale
+  
   scene.add shell
   scene.add tankMesh
   
@@ -182,15 +225,21 @@ window.initRenderer = (createFunction, updateFunction) ->
   #scene.add( light );				
   #scene.add( new THREE.AmbientLight( 0x555555, 0.2 ) );
 
-  ground = new THREE.Mesh(new THREE.PlaneGeometry(worldSize, worldSize), groundMaterial)
+  ground = new THREE.Mesh(new THREE.PlaneGeometry(worldSize*1.5, worldSize*1.5), groundMaterial)
   ground.rotation.x = -Math.PI / 2
   ground.position.y = -0.5 * 465
   scene.add ground
-  skyMesh = new THREE.Mesh(new THREE.CylinderGeometry(worldSize/2.0, worldSize/2.0, worldSize/2.0, 36, 1), skyMaterial)
+  skyMesh = new THREE.Mesh(new THREE.CylinderGeometry(worldSize/2.0, worldSize/2.0, worldSize/2.0, 24, 1), skyMaterial)
   scene.add skyMesh
-  pickingGeometry = new THREE.Geometry()
   
-  createFunction(scene, pickingGeometry)
+  pickingGeometry = new THREE.Geometry()
+  bubbleGeometry = new THREE.Geometry()
+  
+  createFunction(scene, bubbleGeometry, pickingGeometry)
+  
+  bubbleSystem = new THREE.ParticleSystem(bubbleGeometry, bubbleMaterial)
+  bubbleSystem.sortParticles = true
+  scene.add bubbleSystem
     
   pickingScene.add new THREE.Mesh(pickingGeometry, pickingMaterial)
   

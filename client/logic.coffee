@@ -3,7 +3,7 @@ beamCoords = undefined
 
 beamTriggers = []
 
-createGrotto = (scene, pickingGeometry) ->
+createGrotto = (scene, bubbleGeometry, pickingGeometry) ->
   i = 0
   j = 0
   
@@ -11,15 +11,16 @@ createGrotto = (scene, pickingGeometry) ->
     position = new THREE.Vector3(tubeCoords[i][0], 0, tubeCoords[i][1])
     rotation = new THREE.Vector3(0, 0, 0)
     scale = new THREE.Vector3(15, 450, 15)
-    
+            
     scene.createTube scene, position, rotation, scale
     #scene.createPick "tube",
     #  pickingGeometry, 
     #  new THREE.CylinderGeometry(1, 1, 1, 20, 1), [],
     #  (data) ->,
-    #  position, rotation, scale    
+    #  position, rotation, scale 
+    scene.createBubbles bubbleGeometry, -0.19, 0.46, position, rotation, scale  
     i++
-    
+        
   while j < beamCoords.length
     position = new THREE.Vector3(beamCoords[j].x, -100.0, beamCoords[j].y)
     rotation = new THREE.Vector3(0, beamCoords[j].rotation, 0)
