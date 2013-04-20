@@ -199,6 +199,10 @@ THREE.OrbitControls = function ( object, domElement ) {
 		}
 
 	};
+	
+	this.isOperationActive = function () {
+	   return state !== STATE.NONE;
+	};
 
 
 	function getAutoRotationAngle() {
@@ -344,7 +348,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 		}
 
 	}
-
+	
 	this.domElement.addEventListener( 'contextmenu', function ( event ) { event.preventDefault(); }, false );
 	this.domElement.addEventListener( 'mousedown', onMouseDown, false );
 	this.domElement.addEventListener( 'mousewheel', onMouseWheel, false );

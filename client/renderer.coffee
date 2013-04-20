@@ -14,6 +14,8 @@ pickingScene = undefined
 highlightBox = undefined
 highlightBeam = undefined
 
+lastPickId = undefined
+
 worldSize = 16000
 
 mouse = new THREE.Vector2()
@@ -202,8 +204,10 @@ applyVertexColors = (g, c) ->
 
 window.initRenderer = (createFunction, updateFunction) ->
   container = document.getElementById("container")
+  
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000)
-  camera.position.z = 1000
+  camera.position.z = 1500
+  
   controls = new THREE.OrbitControls(camera)
   controls.rotateSpeed = 1.0
   controls.zoomSpeed = 1.2
@@ -295,6 +299,11 @@ pick = ->
   
   #interpret the pixel as an ID
   id = (pixelBuffer[0] << 16) | (pixelBuffer[1] << 8) | (pixelBuffer[2])
+  
+  if id == lastPickId
+    return
+    
+  lastPickId = id  
   data = pickingData[id]
   if data
     
@@ -319,7 +328,8 @@ pick = ->
 
 render = ->
   controls.update()
-  pick()
+  if !controls.isOperationActive()
+    pick()
   renderer.render scene, camera
 
 
