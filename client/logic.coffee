@@ -13,11 +13,11 @@ createGrotto = (scene, pickingGeometry) ->
     scale = new THREE.Vector3(15, 450, 15)
     
     scene.createTube scene, position, rotation, scale
-    scene.createPick "tube",
-      pickingGeometry, 
-      new THREE.CylinderGeometry(1, 1, 1, 20, 1), [],
-      (data) ->,
-      position, rotation, scale    
+    #scene.createPick "tube",
+    #  pickingGeometry, 
+    #  new THREE.CylinderGeometry(1, 1, 1, 20, 1), [],
+    #  (data) ->,
+    #  position, rotation, scale    
     i++
     
   while j < beamCoords.length
