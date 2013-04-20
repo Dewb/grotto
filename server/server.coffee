@@ -8,7 +8,7 @@ server = http.createServer(app)
 server.listen 8080
 
 nowjs = require("now")
-everyone = nowjs.initialize(server)
+everyone = nowjs.initialize(server, { port: 8080 })
 
 model = require("./model.coffee")
 
