@@ -1,4 +1,4 @@
 #!/bin/bash
 
-coffee server/server.coffee &
+coffee server/start.coffee &
 grunt watch &
