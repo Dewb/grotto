@@ -34,7 +34,7 @@ module.exports = function(grunt) {
     watch: {
       coffee: {
         files: ['client/*.coffee'],
-        tasks: 'coffee'
+        tasks: ['coffee', 'browserify']
       }
     },
     "ftp-deploy": {
@@ -52,12 +52,19 @@ module.exports = function(grunt) {
         ],
       },
     },
+    browserify: {
+      js: {
+        src: ['html/compiled/main.js'],
+        dest: 'html/grotto.js'
+      },
+    }
   });
 
   // These plugins provide necessary tasks.
   grunt.loadNpmTasks('grunt-contrib-coffee');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-ftp-deploy');
+  grunt.loadNpmTasks('grunt-browserify');
   
   // Default task.
   grunt.registerTask('default', ['coffee']);

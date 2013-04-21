@@ -1,0 +1,59 @@
+body {
+	font-family: Comfortaa, 'Helvetica Neue Light', HelveticaNeue-Light, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	font-weight: 100;
+	background-color: #303030;
+	margin: 0px;
+	overflow: hidden;
+}
+
+.info {
+	position: absolute;
+	background-color: black;
+	opacity: 0.65;
+	color: white;
+	text-align: center;
+	top: 0px;
+	width: 100%;
+	font-size: 20pt;
+	padding: 10px 0 10px 0;
+}
+
+.notes {
+	position: absolute;
+	top: 2px;
+	left: 95px;
+	font-size: 7pt;
+	color: silver;
+}
+
+.help {
+	position: absolute;
+	top: 8px;
+	right: 15px;
+	font-size: 10pt;
+	color: silver;
+}
+
+.info a {
+	color: #00ffff;
+}
+
+div a {
+	color: white;
+	text-decoration: none; 
+	font-weight: 100;
+}
+
+div a:hover {
+	color: silver;
+	text-decoration: underline; 
+}
+
+div a:visited {
+	color: white;
+}
+
+div#container {
+	text-align: center;
+	width: 100%;
+}

@@ -104,8 +104,8 @@ bubbleUniforms =
 bubbleShaderMaterial = new THREE.ShaderMaterial
   uniforms: bubbleUniforms
   attributes: bubbleAttributes
-  vertexShader: document.getElementById('bubblevertexshader').textContent
-  fragmentShader: document.getElementById('bubblefragmentshader').textContent
+  vertexShader: require('./vertShader')
+  fragmentShader: require('./fragShader')
   blending: THREE.AdditiveBlending
   depthTest: true
   transparent: true
