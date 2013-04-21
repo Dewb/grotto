@@ -7,10 +7,10 @@ module.exports = function(grunt) {
     // Metadata.
     pkg: grunt.file.readJSON("package.json"),
     banner: '/*! <%= pkg.title || pkg.name %> - v<%= pkg.version %> - ' +
-      '<%= grunt.template.today("yyyy-mm-dd") %>\n' +
-      '<%= pkg.homepage ? "* " + pkg.homepage + "\\n" : "" %>' +
-      '* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author.name %>;' +
-      ' Licensed <%= _.pluck(pkg.licenses, "type").join(", ") %> */\n',
+      '<%= grunt.template.today("yyyy-mm-dd hh:mm:ss") %>\n' +
+      '<%= pkg.homepage ? " * " + pkg.homepage + "\\n" : "" %>' +
+      ' * Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author.name %>;' +
+      ' Licensed <%= _.pluck(pkg.licenses, "type").join(", ") %>\n */\n',
     // Task configuration.
     concat: {
       options: {
@@ -18,8 +18,8 @@ module.exports = function(grunt) {
         stripBanners: true
       },
       dist: {
-        src: ['src/<%= pkg.name %>.js'],
-        dest: 'dist/ba-<%= pkg.name %>.js'
+        src: ['html/compiled/grotto.js'],
+        dest: 'html/grotto.js'
       },
     },
     coffee: {
@@ -34,39 +34,24 @@ module.exports = function(grunt) {
     watch: {
       coffee: {
         files: ['client/*.coffee'],
-        tasks: ['coffee', 'browserify']
+        tasks: ['coffee', 'browserify', 'concat']
       }
-    },
-    "ftp-deploy": {
-      build: {
-        auth: {
-          host: 'ftp.webhero.com',
-          port: 21,
-          authKey: 'dewb.org'
-        },
-        src: 'html',
-        dest: '/public_html/grotto',
-        exclusions: [
-          '**/.DS_Store', 
-          '**/Thumbs.db', 
-        ],
-      },
     },
     browserify: {
       js: {
         src: ['html/compiled/main.js'],
-        dest: 'html/grotto.js'
+        dest: 'html/compiled/grotto.js'
       },
     }
   });
 
   // These plugins provide necessary tasks.
+  grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-coffee');
   grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-ftp-deploy');
   grunt.loadNpmTasks('grunt-browserify');
   
   // Default task.
-  grunt.registerTask('default', ['coffee']);
+  grunt.registerTask('default', ['coffee', 'browserify', 'concat']);
 
 };

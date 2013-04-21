@@ -1,5 +1,4 @@
 .DS_Store
-html/compiled/
 node_modules/
-.ftppass
+html/compiled
 html/grotto.js

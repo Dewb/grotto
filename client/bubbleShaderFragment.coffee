@@ -1,6 +1,5 @@
 module.exports = 
 """
-
 uniform sampler2D texture;
 varying vec3 vColor;
 

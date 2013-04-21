@@ -1,13 +1,33 @@
-module.exports = 
+module.exports =
 """
-
 uniform vec3 colors[72];
 uniform float time;
 attribute float size;
 attribute float age;
 attribute float tubeId;
 varying vec3 vColor;
-			
+
+float snoise(vec2 v);
+
+void main() {
+	vColor = (colors[int(tubeId)*2] + colors[int(tubeId)*2+1]) / 2.0;
+
+	vec3 bubblePos = position;
+	bubblePos.y += mod(time, 292.5);
+	if (bubblePos.y > 207.0) { bubblePos.y -= 292.5; }
+	float noiseX = snoise(bubblePos.xy * 0.28);
+	float noiseZ = snoise(bubblePos.xy * 0.28);
+	float noiseY = snoise(bubblePos.xy * 20.0);
+	bubblePos.x += noiseX * 0.3;
+	bubblePos.z += noiseZ * 0.3;
+	bubblePos.y += noiseY * 0.3;
+
+	vec4 mvPosition = modelViewMatrix * vec4( bubblePos, 1.0 );
+	gl_PointSize = size * ( 300.0 / length( mvPosition.xyz ) );;
+	gl_Position = projectionMatrix * mvPosition;
+}
+
+
 //
 // Description : Array and textureless GLSL 2D simplex noise function.
 //      Author : Ian McEwan, Ashima Arts.
@@ -16,7 +36,7 @@ varying vec3 vColor;
 //     License : Copyright (C) 2011 Ashima Arts. All rights reserved.
 //               Distributed under the MIT License. See LICENSE file.
 //               https://github.com/ashima/webgl-noise
-// 
+//
 
 vec3 mod289(vec3 x) {
   return x - floor(x * (1.0 / 289.0)) * 289.0;
@@ -77,25 +97,6 @@ float snoise(vec2 v)
   g.x  = a0.x  * x0.x  + h.x  * x0.y;
   g.yz = a0.yz * x12.xz + h.yz * x12.yw;
   return 130.0 * dot(m, g);
-}
-			
-
-void main() {
-	vColor = (colors[int(tubeId)*2] + colors[int(tubeId)*2+1]) / 2.0;
-
-	vec3 bubblePos = position;
-	bubblePos.y += mod(time, 292.5);
-	if (bubblePos.y > 207.0) { bubblePos.y -= 292.5; }
-	float noiseX = snoise(bubblePos.xy * 0.28);
-	float noiseZ = snoise(bubblePos.xy * 0.28);
-	float noiseY = snoise(bubblePos.xy * 20.0);
-	bubblePos.x += noiseX * 0.3;
-	bubblePos.z += noiseZ * 0.3;
-	bubblePos.y += noiseY * 0.3;
-	
-	vec4 mvPosition = modelViewMatrix * vec4( bubblePos, 1.0 );
-	gl_PointSize = size * ( 300.0 / length( mvPosition.xyz ) );;
-	gl_Position = projectionMatrix * mvPosition;
 }
 
 """

@@ -6,9 +6,9 @@
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-contrib-coffee": "~0.6.6",
-    "grunt-ftp-deploy": "~0.0.7",
     "grunt-contrib-watch": "~0.3.1",
-    "grunt-browserify": "~0.2.2"
+    "grunt-browserify": "~0.2.2",
+    "grunt-contrib-concat": "~0.2.0"
   },
   "dependencies": {
     "now": "~0.8.1",
