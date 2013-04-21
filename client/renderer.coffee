@@ -6,6 +6,9 @@ renderer = undefined
 
 scene = new THREE.Scene()
 
+nextTick = Date.now()
+FPS = 60.0
+msPerTick = 1000 / FPS
 modelUpdateFunction = undefined
 
 pickingData = []
@@ -68,13 +71,44 @@ beamMaterial = new THREE.MeshBasicMaterial(
 )
 
 bubbleMaterial = new THREE.ParticleBasicMaterial(
-  color: 0xffffff
+  color: 0xff0000
   size: 8
-  opacity: 0.25
+  opacity: 0.75
   transparent: true
   blending: THREE.AdditiveBlending
   map: THREE.ImageUtils.loadTexture("res/bubble-sprite-64.png")
 )
+
+bubbleAttributes =
+  size: 	
+    type: 'f' 
+    value: []
+  age: 
+    type: 'f'
+    value: []
+  tubeId:
+    type: 'f'
+    value: []
+
+bubbleUniforms = 
+  colors:
+    type: 'v3v'
+    value: []
+  texture:
+    type: 't'
+    value: THREE.ImageUtils.loadTexture("res/bubble-sprite-64.png")
+  time:
+    type: 'f'
+    value: 0.0
+
+bubbleShaderMaterial = new THREE.ShaderMaterial
+  uniforms: bubbleUniforms
+  attributes: bubbleAttributes
+  vertexShader: document.getElementById('bubblevertexshader').textContent
+  fragmentShader: document.getElementById('bubblefragmentshader').textContent
+  blending: THREE.AdditiveBlending
+  depthTest: true
+  transparent: true
 
 reflectionCube = THREE.ImageUtils.loadTextureCube(["res/panorama.jpg", "res/panorama.jpg", "res/black.jpg", "res/black.jpg", "res/panorama.jpg", "res/panorama.jpg"])
 shader = THREE.ShaderLib["cube"]
@@ -99,11 +133,9 @@ applyPRS = (geom, position, rotation, scale) ->
   
 applyPRSMatrix = (geom, position, rotation, scale) ->
   m = new THREE.Matrix4()
-  m.setRotationFromEuler(rotation);
-  m.scale(scale);
-  m.setPosition(position);
+  m.makeFromPositionEulerScale(position, rotation, "XYZ", scale)
   geom.applyMatrix(m)
-  
+    
 applyVertexColors = (g, c) ->
   g.faces.forEach (f) ->
     n = (if (f instanceof THREE.Face3) then 3 else 4)
@@ -112,10 +144,10 @@ applyVertexColors = (g, c) ->
       f.vertexColors[j] = c
       j++  
   
-scene.createBubbles = (particleGeometry, bottom, top, position, rotation, scale) ->
-  bubbleRadius = 0.5
+scene.createBubbles = (particleGeometry, id, bottom, top, position, rotation, scale) ->
+  bubbleRadius = 0.55
   bubbleR = 8
-  bubbleH = 12
+  bubbleH = 16
   
   particles = new THREE.Geometry()
   
@@ -130,14 +162,15 @@ scene.createBubbles = (particleGeometry, bottom, top, position, rotation, scale)
         bubbleRadius * Math.sin(theta) + Math.random() * 0.15
       )
       particles.vertices.push pt
+      bubbleAttributes.tubeId.value.push id
+      bubbleAttributes.age.value.push 0
+      bubbleAttributes.size.value.push 2.0 + Math.random() * 10.0
+
       r++
     h++
     
   applyPRSMatrix particles, position, rotation, scale  
   THREE.GeometryUtils.merge particleGeometry, particles
-  
-scene.createBubbleSystem = (particleGeometry) ->
-  
   
 scene.createTube = (scene, position, rotation, scale) ->
   topHeight = 0.03
@@ -166,6 +199,9 @@ scene.createTube = (scene, position, rotation, scale) ->
   c2 = new THREE.Color()
   c2.setHSL 0.58, 1.0, 0.5
   
+  bubbleUniforms.colors.value.push new THREE.Vector3(c1.r, c1.g, c1.b)
+  bubbleUniforms.colors.value.push new THREE.Vector3(c2.r, c2.g, c2.b)
+  
   topLight = new THREE.PointLight(c1.getHex(), 5.0, scale.y / 15.0)
   bottomLight = new THREE.PointLight(c2.getHex(), 5.0, scale.y / 15.0)
   topPosition = position.clone()
@@ -178,7 +214,7 @@ scene.createTube = (scene, position, rotation, scale) ->
   scene.add bottomLight
   
 scene.createPick = (type, pickingGeometry, shape, parents, callback, position, rotation, scale) ->
-  pickingColor = new THREE.Color(pickingData.length)
+  pickingColor = new THREE.Color(pickingData.length + 1)
   applyVertexColors shape, pickingColor
   pickingBounds = new THREE.Mesh(shape)
   pickingBounds.position.copy position
@@ -193,6 +229,16 @@ scene.createPick = (type, pickingGeometry, shape, parents, callback, position, r
     parents: parents
     callback: callback
   }
+  
+scene.getNumLights = () ->
+	return @__lights.length
+	
+scene.getLightColor = (index) ->
+  return @__lights[index].color  
+
+scene.setLightColor = (index, c) ->
+  @__lights[index].color.setRGB(c.r, c.g, c.b)
+  bubbleUniforms.colors.value[index].set(c.r, c.g, c.b)
   
 applyVertexColors = (g, c) ->
   g.faces.forEach (f) ->
@@ -241,7 +287,11 @@ window.initRenderer = (createFunction, updateFunction) ->
   
   createFunction(scene, bubbleGeometry, pickingGeometry)
   
-  bubbleSystem = new THREE.ParticleSystem(bubbleGeometry, bubbleMaterial)
+  if false
+    bubbleSystem = new THREE.ParticleSystem(bubbleGeometry, bubbleMaterial)
+  else
+    bubbleSystem = new THREE.ParticleSystem(bubbleGeometry, bubbleShaderMaterial)
+
   bubbleSystem.sortParticles = true
   scene.add bubbleSystem
     
@@ -258,12 +308,12 @@ window.initRenderer = (createFunction, updateFunction) ->
   if Detector.webgl
     renderer = new THREE.WebGLRenderer(
       antialias: true
-      clearColor: 0x000000
     )
     renderer.sortObjects = false
     renderer.setSize window.innerWidth, window.innerHeight
+    renderer.setClearColor 0xffffff, 1.0
   else
-    renderer = new THREE.CanvasRenderer(clearColor: 0x000000)
+    renderer = new THREE.CanvasRenderer()
     container.innerHTML = "<div style=\"padding: 20px; background-color: red; top: 200px; position: relative;\"><a href=\"http://get.webgl.org\">Oh no! Your browser does not appear to support WebGL, which is required for this simulator. Click here to find out more.</a></div>"
   
   container.appendChild renderer.domElement
@@ -282,15 +332,25 @@ onMouseMove = (e) ->
 
 animate = ->
   requestAnimationFrame animate
-  modelUpdateFunction(scene)
-  render()
-  stats.update()
 
+  ticks = 0
+  currentTime = Date.now()
+  if currentTime - nextTick > 60 * msPerTick
+    nextTick = currentTime - msPerTick
+              
+  while currentTime > nextTick
+    modelUpdateFunction(scene)
+    bubbleUniforms.time.value += 0.2
+    nextTick += msPerTick
+    ticks++
+                
+  if ticks
+    render()
+    stats.update()
+    
 pick = ->  
   #render the picking scene off-screen
-  renderer.setClearColorHex 0xffffff
   renderer.render pickingScene, camera, pickingTexture
-  renderer.setClearColorHex 0x000000
   gl = renderer.getContext()
   
   #read the pixel under the mouse from the texture
@@ -298,7 +358,7 @@ pick = ->
   gl.readPixels mouse.x, pickingTexture.height - mouse.y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixelBuffer
   
   #interpret the pixel as an ID
-  id = (pixelBuffer[0] << 16) | (pixelBuffer[1] << 8) | (pixelBuffer[2])
+  id = (pixelBuffer[0] << 16) | (pixelBuffer[1] << 8) | (pixelBuffer[2]) - 1
   
   if id == lastPickId
     return
