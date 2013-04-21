@@ -1,56 +1,40 @@
-C = 300
-B = Math.sin(60 * Math.PI / 180.0) * C
-A = C * 0.5
+generateHexagon = (radius, nodesPerSide) ->
+  corners = []
+  i = 0
+  while i < 6
+    corners.push [
+      -radius * Math.cos(2 * Math.PI * (i/6) + Math.PI/6),
+      -radius * Math.sin(2 * Math.PI * (i/6) + Math.PI/6)
+      ]
+    i++
 
-tubeCoords = [
+  allNodes = []
+  i = 0
+  while i < 6
+    j = 0
+    allNodes.push corners[i]
+    while j < nodesPerSide
+      prev = corners[i]
+      next = corners[(i+1)%6]
+      allNodes.push [
+        prev[0] + (j+1) / (nodesPerSide + 1) * (next[0] - prev[0]),
+        prev[1] + (j+1) / (nodesPerSide + 1) * (next[1] - prev[1]),
+        ]
+      j++
+    i++
 
-  # inner ring
-  [-B, A], 
-  [-B, A - C], 
-  [0, -C], 
-  [B, A - C], 
-  [B, A], 
-  [0, C], 
+  return allNodes
 
-  # middle ring  
-  [-B * 2, A * 2], 
-  [-B * 2, A * 2 - C], 
-  [-B * 2, A * 2 - C * 2], 
-  [-B, A - C * 2], 
-  [0, -C * 2], 
-  [B, A - C * 2], 
-  [B * 2, A * 2 - C * 2], 
-  [B * 2, A * 2 - C], 
-  [B * 2, A * 2], 
-  [B, A * 3], 
-  [0, C * 2], 
-  [-B, A * 3],
-   
-  # outer ring
-  [-B * 3, A * 3], 
-  [-B * 3, A * 3 - C], 
-  [-B * 3, A * 3 - C * 2], 
-  [-B * 3, A * 3 - C * 3], 
-  [-B * 2, A * 2 - C * 3], 
-  [-B, A - C * 3], 
-  [0, -C * 3], 
-  [B, A - C * 3], 
-  [B * 2, A * 2 - C * 3], 
-  [B * 3, A * 3 - C * 3], 
-  [B * 3, A * 3 - C * 2], 
-  [B * 3, A * 3 - C], 
-  [B * 3, A * 3], 
-  [B * 2, A * 4], 
-  [B, A * 5], 
-  [0, C * 3], 
-  [-B, A * 5], 
-  [-B * 2, A * 4]
-]
+tubeCoords = []
 
-makebeam = (m, n) -> 
+tubeCoords = tubeCoords.concat generateHexagon(300, 0)
+tubeCoords = tubeCoords.concat generateHexagon(600, 1)
+tubeCoords = tubeCoords.concat generateHexagon(900, 2)
+
+makebeam = (m, n) ->
   dx = tubeCoords[m][0]-tubeCoords[n][0]
   dy = tubeCoords[m][1]-tubeCoords[n][1]
-  
+
   return {
     x: (tubeCoords[m][0]+tubeCoords[n][0])/2.0,
     y: (tubeCoords[m][1]+tubeCoords[n][1])/2.0,
@@ -78,20 +62,20 @@ while beamstart < 36
   else
     beamCoords.push(makebeam(beamstart, ((beamstart-17)%18)+18))
   beamstart++
-  
-  
+
+
 beamCallbacks = []
 addBeamCallback = (callback) ->
   beamCallbacks.push(callback)
-  
+
 onBeamBroken = (tube1, tube2) ->
   console.log('Beam ' + tube1 + '-' + tube2 + ' broken')
   i = 0
   while i < beamCallbacks.length
     beamCallbacks[i](tube1, tube2)
     i++
-    
+
 exports.tubeCoords = tubeCoords
-exports.beamCoords = beamCoords 
+exports.beamCoords = beamCoords
 exports.onBeamBroken = onBeamBroken
 exports.addBeamCallback = addBeamCallback
